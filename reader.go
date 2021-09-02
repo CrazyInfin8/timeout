@@ -2,7 +2,6 @@ package timeout
 
 import (
 	"io"
-	"os"
 	"time"
 	"unicode/utf8"
 )
