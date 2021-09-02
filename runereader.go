@@ -5,9 +5,10 @@ import (
 	"time"
 )
 
+// RuneReader reads from an io.RuneReader with a timeout
 type RuneReader struct {
 	rd io.RuneReader
-	ch     chan struct {
+	ch chan struct {
 		rune
 		int
 		error
@@ -70,19 +71,21 @@ func (rr *RuneReader) ReadRune() (r rune, size int, err error) {
 	return rr.rd.ReadRune()
 }
 
-// ReaderWithTimeout encases a RuneReader so that it can be used in place of
-// io.RuneReader
+// RuneReaderWithTimeout encases a RuneReader so that it can be used in place of
+// io.RuneReader while still having a timeout.
 type RuneReaderWithTimeout struct {
 	rr *RuneReader
-	d time.Duration
+	d  time.Duration
 }
 
 // WithTimeout returns struct that can be used in place of io.RuneReader while
-// still having a timeout
+// still having a timeout.
 func (rr *RuneReader) WithTimeout(d time.Duration) *RuneReaderWithTimeout {
 	return &RuneReaderWithTimeout{rr, d}
 }
 
+// ReadRune attempts to read a rune from the io.Reader but can stop based on the
+// set timeout
 func (rr *RuneReaderWithTimeout) ReadRune() (r rune, size int, err error) {
 	return rr.rr.ReadRuneWithTimeout(rr.d)
 }

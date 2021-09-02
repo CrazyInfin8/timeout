@@ -2,10 +2,12 @@ package timeout
 
 import (
 	"io"
+	"os"
 	"time"
 	"unicode/utf8"
 )
 
+// Reader reads from an io.Reader with a timeout
 type Reader struct {
 	buf  []byte
 	rd   io.Reader
@@ -135,7 +137,7 @@ func (rd *Reader) ReadWithTimeout(p []byte, d time.Duration) (n int, err error) 
 
 // Read reads normally without waiting for a timeout. Good for cleaning the
 // buffer and any running read goroutines.
-func (rd *Reader)Read(p []byte) (n int, err error) {
+func (rd *Reader) Read(p []byte) (n int, err error) {
 	if !rd.isEmpty() {
 		count := rd.copyBufTo(p)
 		n += count
@@ -143,7 +145,7 @@ func (rd *Reader)Read(p []byte) (n int, err error) {
 	}
 
 	if rd.ch != nil {
-		s := <- rd.ch
+		s := <-rd.ch
 		rd.r += s.int
 		bufFull := rd.isFull()
 		count := rd.copyBufTo(p)
@@ -251,14 +253,20 @@ func (rd *Reader) WithTimeout(d time.Duration) *ReaderWithTimeout {
 	return &ReaderWithTimeout{rd, d}
 }
 
+// Read attempts to read len[p] bytes from the io.Reader but can stop based on
+// the set timeout
 func (rd *ReaderWithTimeout) Read(p []byte) (n int, err error) {
 	return rd.rd.ReadWithTimeout(p, rd.d)
 }
 
+// ReadByte attempts to read a byte from the io.Reader but can stop based on the
+// set timeout
 func (rd *ReaderWithTimeout) ReadByte() (byte, error) {
 	return rd.rd.ReadByteWithTimeout(rd.d)
 }
 
+// ReadRune attempts to read a rune from the io.Reader but can stop based on the
+// set timeout
 func (rd *ReaderWithTimeout) ReadRune() (r rune, size int, err error) {
 	return rd.rd.ReadRuneWithTimeout(rd.d)
 }

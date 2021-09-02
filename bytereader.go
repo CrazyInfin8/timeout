@@ -5,14 +5,10 @@ import (
 	"time"
 )
 
-func init() {
-	
-}
-
-// ByteReader creates a new 
+// ByteReader reads from an io.ByteReader with a timeout
 type ByteReader struct {
 	rd io.ByteReader
-	ch     chan struct {
+	ch chan struct {
 		byte
 		error
 	}
@@ -71,17 +67,21 @@ func (br *ByteReader) ReadByte() (b byte, err error) {
 	return br.rd.ReadByte()
 }
 
+// ByteReaderWithTimeout encases a RuneReader so that it can be used in place of
+// io.ByteReader while still having a timeout.
 type ByteReaderWithTimeout struct {
 	br *ByteReader
-	d time.Duration
+	d  time.Duration
 }
 
 // WithTimeout returns struct that can be used in place of io.ByteReader while
-// still having a timeout
+// still having a timeout.
 func (br *ByteReader) WithTimeout(d time.Duration) *ByteReaderWithTimeout {
 	return &ByteReaderWithTimeout{br, d}
 }
 
+// ReadByte attempts to read a byte from the io.Reader but can stop based on the
+// set timeout
 func (br *ByteReaderWithTimeout) ReadByte() (b byte, err error) {
 	return br.br.ReadByteWithTimeout(br.d)
 }
